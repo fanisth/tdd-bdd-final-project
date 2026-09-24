@@ -249,6 +249,28 @@ class TestProductRoutes(TestCase):
         data = response.get_json()
         self.assertEqual(len(data), availability_occurances)
 
+    def test_unsupported_method(self):
+        """It should Receive unsupported method response"""
+    
+        response = self.client.delete(f'{BASE_URL}')
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_product_not_found(self):
+        """It should not find a Product to Update"""
+        test_product = self._create_products()[0]
+
+        payload = test_product.serialize()
+        payload["description"] = "Updated description"
+        response = self.client.put(f'{BASE_URL}/999', json=payload)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_product_not_found(self):
+        """It should not find a Product to Delete"""
+        test_product = self._create_products()[0]
+
+        response = self.client.delete(f'{BASE_URL}/999')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     ######################################################################
     # Utility functions
     ######################################################################
