@@ -28,6 +28,7 @@ import os
 import logging
 from decimal import Decimal
 from unittest import TestCase
+from urllib.parse import quote_plus
 from service import app
 from service.common import status
 from service.models import db, init_db, Product
@@ -181,7 +182,7 @@ class TestProductRoutes(TestCase):
         self.assertEqual(data["category"], test_product.category.name)
 
     def test_update_product(self):
-        """It should Update Product"""
+        """It should Update a Product"""
         test_product = self._create_products()[0]
 
         payload = test_product.serialize()
@@ -191,6 +192,62 @@ class TestProductRoutes(TestCase):
 
         data = response.get_json()
         self.assertEqual(data["description"], "Updated description")
+
+    def test_delete_product(self):
+        """It should Delete a Product"""
+        products = self._create_products(5)
+        product_count = self.get_product_count()
+        test_product = products[0]
+
+        response = self.client.delete(f'{BASE_URL}/{test_product.id}')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # make sure they are deleted
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        new_count = self.get_product_count()
+        self.assertEqual(new_count, product_count - 1)
+
+    def test_list_all_product(self):
+        """It should List all Products"""
+        products = self._create_products(5)
+
+        response = self.client.get(f'{BASE_URL}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
+
+    def test_list_by_name(self):
+        """It should List all Products with specific name"""
+        products = self._create_products(5)
+
+        search_name = products[0].name
+        name_occurances = len([product for product in products if product.name == search_name])
+        response = self.client.get(BASE_URL, query_string=f"name={quote_plus(search_name)}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), name_occurances)
+
+    def test_list_by_category(self):
+        """It should List all Products with specific category"""
+        products = self._create_products(10)
+
+        search_category = products[0].category
+        category_occurances = len([product for product in products if product.category == search_category])
+        response = self.client.get(BASE_URL, query_string=f"category={search_category.name}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), category_occurances)
+
+    def test_list_by_availability(self):
+        """It should List all Products with specific availability"""
+        products = self._create_products(10)
+
+        availability_occurances = len([product for product in products if product.available == True])
+        response = self.client.get(BASE_URL, query_string=f"available=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), availability_occurances)
 
     ######################################################################
     # Utility functions
