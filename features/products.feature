@@ -92,7 +92,7 @@ Scenario: Delete a Product
     Then I should see the message "Success"
     And I should not see "Hat" in the results
 
-Scenario: Listing all Products
+Scenario: List all products
     When I visit the "Home Page"
     And I press the "Clear" button
     And I press the "Search" button
@@ -102,7 +102,7 @@ Scenario: Listing all Products
     And I should see "Big Mac" in the results
     And I should see "Sheets" in the results
 
-Scenario: Searching a Product based on Category
+Scenario: Search by category
     When I visit the "Home Page"
     And I press the "Clear" button
     And I select "Food" in the "Category" dropdown
@@ -124,9 +124,8 @@ Scenario: Searching a Product based on Availability
     And I should see "Sheets" in the results
     And I should not see "Shoes" in the results
 
-Scenario: Searching a Product based on Name
+Scenario: Search by name
     When I visit the "Home Page"
-    And I press the "Clear" button
     And I set the "Name" to "Hat"
     And I press the "Search" button
     Then I should see the message "Success"

@@ -128,16 +128,16 @@ class TestProductModel(unittest.TestCase):
         product.id = None
         product.create()
 
-        product.description = "Updated Description"
+        product.description = "testing"
         original_id = product.id
         product.update()
         self.assertEqual(product.id, original_id)
-        self.assertEqual(product.description, "Updated Description")
+        self.assertEqual(product.description, "testing")
         # Fetch it back
         products = Product.all()
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].id, original_id)
-        self.assertEqual(products[0].description, "Updated Description")
+        self.assertEqual(products[0].description, "testing")
 
     def test_delete_a_product(self):
         """It should Delete a product from the database"""
@@ -192,10 +192,10 @@ class TestProductModel(unittest.TestCase):
         search_availability = products[0].available
         availability_occurances = len([product for product in products if product.available == search_availability])
 
-        found_products = Product.find_by_availability(search_availability)
-        self.assertEqual(found_products.count(), availability_occurances)
-        for found in found_products:
-            self.assertEqual(found.available, search_availability)
+        found = Product.find_by_availability(search_availability)
+        self.assertEqual(found.count(), availability_occurances)
+        for product in found:
+            self.assertEqual(product.available, search_availability)
 
     def test_find_product_by_category(self):
         """It should Find a product by category from the database"""

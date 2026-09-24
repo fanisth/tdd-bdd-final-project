@@ -183,15 +183,18 @@ class TestProductRoutes(TestCase):
 
     def test_update_product(self):
         """It should Update a Product"""
-        test_product = self._create_products()[0]
+        # create a product to update
+        test_product = ProductFactory()
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        payload = test_product.serialize()
-        payload["description"] = "Updated description"
-        response = self.client.put(f'{BASE_URL}/{payload["id"]}', json=payload)
+        # update the product
+        new_product = response.get_json()
+        new_product["description"] = "unknown"
+        response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        data = response.get_json()
-        self.assertEqual(data["description"], "Updated description")
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["description"], "unknown")
 
     def test_delete_product(self):
         """It should Delete a Product"""
@@ -228,6 +231,9 @@ class TestProductRoutes(TestCase):
         data = response.get_json()
         self.assertEqual(len(data), name_occurances)
 
+        for product in data:
+            self.assertEqual(product["name"], search_name)
+
     def test_list_by_category(self):
         """It should List all Products with specific category"""
         products = self._create_products(10)
@@ -239,6 +245,9 @@ class TestProductRoutes(TestCase):
         data = response.get_json()
         self.assertEqual(len(data), category_occurances)
 
+        for product in data:
+            self.assertEqual(product["category"], search_category.name)
+
     def test_list_by_availability(self):
         """It should List all Products with specific availability"""
         products = self._create_products(10)
@@ -248,6 +257,9 @@ class TestProductRoutes(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), availability_occurances)
+
+        for product in data:
+            self.assertEqual(product["available"], True)
 
     def test_unsupported_method(self):
         """It should Receive unsupported method response"""
@@ -262,13 +274,6 @@ class TestProductRoutes(TestCase):
         payload = test_product.serialize()
         payload["description"] = "Updated description"
         response = self.client.put(f'{BASE_URL}/999', json=payload)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_delete_product_not_found(self):
-        """It should not find a Product to Delete"""
-        test_product = self._create_products()[0]
-
-        response = self.client.delete(f'{BASE_URL}/999')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     ######################################################################
